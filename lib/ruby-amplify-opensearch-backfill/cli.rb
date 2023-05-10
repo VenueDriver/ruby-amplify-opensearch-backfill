@@ -4,10 +4,12 @@ module AmplifyOpenSearchBackfill
     default_task :help
 
     desc 'status', 'Check current OpenSearch configuration for this Amplify app.'
+    option :api_name, required: true, desc: 'Amplify API name', banner: ''
+    option :model_name, required: true, desc: 'Amplify model name', banner: ''
     def status
       AmplifyOpenSearchBackfill::Introspector.new(
-        api_name:   options['api-name'],
-        model_name: options['model-name']
+        api_name:   options['api_name'],
+        model_name: options['model_name']
       ).status
     end
 
@@ -20,6 +22,10 @@ module AmplifyOpenSearchBackfill
     option :api_name, required: true, desc: 'Amplify API name', banner: ''
     option :model_name, required: true, desc: 'Amplify model name', banner: ''
     def reindex
+      AmplifyOpenSearchBackfill::Processor.new.reindex(
+        api_name: options['api_name'],
+        model_name: options['model_name']
+      )
     end
 
     desc 'raw', 'Reindex but with raw parameters.'
@@ -29,15 +35,12 @@ module AmplifyOpenSearchBackfill
     option :esarn, required: true, desc: 'Event source ARN', banner: ''
     def raw
       domain = AmplifyOpenSearchBackfill::Processor.new
-      credentials = Aws::SharedCredentials.new
 
       domain.import_dynamodb_items_to_es(
-        options[:table_name],
-        options[:region],
-        options[:event_source_arn],
-        options[:lambda_function],
-        300,
-        credentials
+        region: options[:rn],
+        table_name: options[:tn],
+        event_source_arn: options[:esarn],
+        lambda_function_arn: options[:lfarn]
       )
     end
 
